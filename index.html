@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CrimeWatch | AI-Powered Criminal Detection</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1e88e5;
+            --primary-dark: #1565c0;
+            --secondary: #e53935;
+            --dark: #121212;
+            --darker: #0a0a0a;
+            --light: #f5f5f5;
+            --gray: #424242;
+            --success: #43a047;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--dark);
+            color: var(--light);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .logo {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        
+        .tagline {
+            color: var(--light);
+            margin-bottom: 30px;
+        }
+        
+        .about-section {
+            background-color: var(--darker);
+            padding: 25px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .section-title {
+            color: var(--primary);
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid var(--gray);
+            padding-bottom: 8px;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .feature-item {
+            background-color: rgba(30, 136, 229, 0.1);
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 3px solid var(--primary);
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .video-container {
+            background-color: #000;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        #liveView, #uploadedVideo {
+            width: 100%;
+            display: block;
+        }
+        
+        .video-placeholder {
+            height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #000;
+            color: var(--gray);
+            font-size: 1.2rem;
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .btn-secondary {
+            background-color: var(--gray);
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #333;
+        }
+        
+        #uploadSection {
+            display: none;
+        }
+        
+        .file-input {
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .criminal-info {
+            background-color: var(--darker);
+            padding: 20px;
+            border-radius: 8px;
+            height: 100%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        
+        .criminal-card {
+            background-color: var(--dark);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: all 0.3s ease;
+        }
+        
+        .criminal-img {
+            width: 100%;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            border: 2px solid var(--gray);
+        }
+        
+        .criminal-name {
+            color: var(--primary);
+            margin-bottom: 10px;
+            font-size: 1.3rem;
+        }
+        
+        .criminal-details {
+            margin-bottom: 8px;
+        }
+        
+        .criminal-details strong {
+            color: var(--primary);
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-weight: 500;
+            font-size: 0.8rem;
+            margin-left: 8px;
+        }
+        
+        .status-wanted {
+            background-color: rgba(229, 57, 53, 0.2);
+            color: var(--secondary);
+        }
+        
+        .status-fugitive {
+            background-color: rgba(255, 152, 0, 0.2);
+            color: #ff9800;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+        
+        .status-success {
+            background-color: rgba(67, 160, 71, 0.2);
+            border-left: 4px solid var(--success);
+        }
+        
+        .status-error {
+            background-color: rgba(229, 57, 53, 0.2);
+            border-left: 4px solid var(--secondary);
+        }
+        
+        .status-info {
+            background-color: rgba(66, 165, 245, 0.2);
+            border-left: 4px solid #42a5f5;
+        }
+        
+        .progress-bar {
+            height: 4px;
+            background: rgba(255,255,255,0.2);
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-bar:after {
+            content: '';
+            display: block;
+            width: 100%;
+            height: 100%;
+            background: var(--primary);
+            animation: progress 2s infinite linear;
+            transform-origin: 0% 50%;
+        }
+        
+        @keyframes progress {
+            0% { transform: scaleX(0); }
+            50% { transform: scaleX(1); }
+            100% { transform: scaleX(0) translateX(100%); }
+        }
+        
+        .detection-alert {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--secondary);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn {
+                width: 100%;
+                max-width: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">CrimeWatch</div>
+            <div class="tagline">AI-Powered Criminal Detection System</div>
+        </header>
+        
+        <div class="about-section">
+            <h2 class="section-title">About The System</h2>
+            <p>Advanced facial recognition technology designed to help law enforcement agencies identify and track wanted criminals in real-time through live camera feeds or uploaded evidence videos.</p>
+            
+            <div class="features">
+                <div class="feature-item">
+                    <strong>Real-time Detection</strong>
+                    <p>Instant identification from live camera feeds</p>
+                </div>
+                <div class="feature-item">
+                    <strong>Evidence Analysis</strong>
+                    <p>Process recorded videos for suspect matching</p>
+                </div>
+                <div class="feature-item">
+                    <strong>Database Integration</strong>
+                    <p>Connected to local criminal databases</p>
+                </div>
+                <div class="feature-item">
+                    <strong>Secure Platform</strong>
+                    <p>Encrypted data transmission and storage</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="liveBtn" class="btn btn-primary">Live Camera Feed</button>
+            <button id="uploadBtn" class="btn btn-secondary">Upload Video Evidence</button>
+        </div>
+        
+        <div class="main-content">
+            <div class="video-container">
+                <img id="liveFeed" src="{{ url_for('video_feed') }}" style="display: none;">
+                <div id="liveView">
+                    <img id="streamingVideo" src="" style="width: 100%;">
+                </div>
+                
+                <div id="uploadSection">
+                    <div class="file-input">
+                        <input type="file" id="videoInput" accept="video/*">
+                    </div>
+                    <div class="video-placeholder">
+                        <video id="uploadedVideo" controls style="width: 100%; height: 100%;"></video>
+                    </div>
+                    <div style="text-align: center; margin: 15px 0;">
+                        <button onclick="processVideo()" class="btn btn-primary">Analyze Video</button>
+                    </div>
+                </div>
+                
+                <div id="detectionStatus"></div>
+            </div>
+            
+            <div class="criminal-info">
+                <h2 class="section-title">Criminal Information</h2>
+                <div id="criminalInfo">
+                    <div class="criminal-card">
+                        <p>No criminal detected. System is actively monitoring.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize with live view active
+        document.getElementById('uploadSection').style.display = 'none';
+        
+        // Start the video stream
+        function startVideoStream() {
+            document.getElementById('streamingVideo').src = "{{ url_for('video_feed') }}?" + new Date().getTime();
+        }
+        startVideoStream();
+        
+        // Toggle between live and upload views
+        document.getElementById('liveBtn').addEventListener('click', function() {
+            // Show live view and hide upload section
+            document.getElementById('liveView').style.display = 'block';
+            document.getElementById('uploadSection').style.display = 'none';
+            
+            // Reset the file input
+            document.getElementById('videoInput').value = '';
+            
+            // Clear any status messages
+            document.getElementById('detectionStatus').innerHTML = '';
+            
+            // Update button states
+            this.classList.add('btn-primary');
+            this.classList.remove('btn-secondary');
+            document.getElementById('uploadBtn').classList.add('btn-secondary');
+            document.getElementById('uploadBtn').classList.remove('btn-primary');
+            
+            // Restart the video stream
+            startVideoStream();
+        });
+        
+        document.getElementById('uploadBtn').addEventListener('click', function() {
+            // Show upload section and hide live view
+            document.getElementById('liveView').style.display = 'none';
+            document.getElementById('uploadSection').style.display = 'block';
+            
+            // Clear any status messages
+            document.getElementById('detectionStatus').innerHTML = '';
+            
+            // Update button states
+            this.classList.add('btn-primary');
+            this.classList.remove('btn-secondary');
+            document.getElementById('liveBtn').classList.add('btn-secondary');
+            document.getElementById('liveBtn').classList.remove('btn-primary');
+        });
+    
+        // Function to check for new detections from live feed
+        function checkForDetections() {
+            fetch('/latest_detection')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.id !== null && data.id !== undefined) {
+                        displayCriminalInfo(data.id);
+                        document.getElementById('detectionStatus').innerHTML = `
+                            <div class="status status-error">
+                                ALERT: Wanted criminal detected in live feed!
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => console.error('Error checking detection:', error));
+        }
+        
+        // Check for detections every second
+        const detectionInterval = setInterval(checkForDetections, 1000);
+    
+        // Process uploaded video
+        function processVideo() {
+            const fileInput = document.getElementById('videoInput');
+            const statusDiv = document.getElementById('detectionStatus');
+            const videoPlayer = document.getElementById('uploadedVideo');
+            
+            if (!fileInput.files.length) {
+                showStatus('Please select a video file first', 'error');
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const videoURL = URL.createObjectURL(file);
+            videoPlayer.src = videoURL;
+            
+            // Show real-time progress
+            const progressInterval = setProgressUpdater(statusDiv);
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                clearInterval(progressInterval);
+                
+                if (data.error) {
+                    showStatus(`Error: ${data.error}`, 'error');
+                } else if (data.detected_faces && data.detected_faces.length > 0) {
+                    showStatus(`Detected criminal in ${data.processed_frames || 'unknown'}/${data.total_frames || 'unknown'} frames`, 'success');
+                    displayCriminalInfo(data.detected_faces[0]);
+                } else {
+                    showStatus('No criminals detected', 'info');
+                    document.getElementById('criminalInfo').innerHTML = `
+                        <div class="criminal-card">
+                            <p>No criminal matches found in the analyzed video.</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                clearInterval(progressInterval);
+                showStatus(`Error: ${error.message}`, 'error');
+            });
+        }
+        
+        // Helper function to show processing progress
+        function setProgressUpdater(element) {
+            let dots = 0;
+            return setInterval(() => {
+                dots = (dots + 1) % 4;
+                element.innerHTML = `Processing video${'.'.repeat(dots)}<br>
+                                   <small>This usually takes 10-30 seconds</small>
+                                   <div class="progress-bar"></div>`;
+            }, 500);
+        }
+        
+        // Improved status display
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('detectionStatus');
+            statusDiv.innerHTML = `
+                <div class="status status-${type}">
+                    ${message}
+                </div>
+            `;
+        }
+        
+        // Display criminal information
+        function displayCriminalInfo(criminalId) {
+            fetch(`/criminal/${criminalId}`)
+                .then(response => response.json())
+                .then(criminal => {
+                    if (criminal.name) {
+                        let statusClass, statusText;
+                        if (criminal.status === 'Wanted') {
+                            statusClass = 'status-wanted';
+                            statusText = 'WANTED';
+                        } else if (criminal.status === 'Fugitive') {
+                            statusClass = 'status-fugitive';
+                            statusText = 'FUGITIVE';
+                        }
+                        
+                        document.getElementById('criminalInfo').innerHTML = `
+                            <div class="criminal-card">
+                                <img src="${criminal.image}" alt="${criminal.name}" class="criminal-img">
+                                <h3 class="criminal-name">${criminal.name} <span class="status-badge ${statusClass}">${statusText}</span></h3>
+                                <div class="criminal-details">
+                                    <strong>Crime:</strong> ${criminal.crime}
+                                </div>
+                                <div class="criminal-details">
+                                    <strong>Status:</strong> ${criminal.status}
+                                </div>
+                                <div class="criminal-details">
+                                    <strong>Reward:</strong> ${criminal.reward}
+                                </div>
+                                <div class="criminal-details">
+                                    <strong>Last Seen:</strong> ${criminal.last_seen}
+                                </div>
+                                <div class="criminal-details">
+                                    <strong>Details:</strong> ${criminal.details}
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Show alert for criminal detection
+                        const alert = document.createElement('div');
+                        alert.className = 'detection-alert';
+                        alert.textContent = `ALERT: ${criminal.name} detected!`;
+                        document.body.appendChild(alert);
+                        
+                        setTimeout(() => {
+                            alert.remove();
+                        }, 5000);
+                    }
+                });
+        }
+    
+        // Refresh/restart service function
+        function restartService() {
+            // Clear any existing status
+            document.getElementById('detectionStatus').innerHTML = '';
+            
+            // Show loading status
+            showStatus('Restarting service...', 'info');
+            
+            // Clear criminal info
+            document.getElementById('criminalInfo').innerHTML = `
+                <div class="criminal-card">
+                    <p>System is restarting...</p>
+                </div>
+            `;
+            
+            // Restart video stream with cache busting
+            startVideoStream();
+            
+            // Clear and restart detection interval
+            clearInterval(detectionInterval);
+            setInterval(checkForDetections, 1000);
+            
+            // Show success message after short delay
+            setTimeout(() => {
+                showStatus('Service restarted successfully', 'success');
+            }, 1000);
+        }
+    </script>
+    
+    <!-- Add this button at the bottom of your HTML, just before the closing </div> of the container -->
+    <div style="text-align: center; margin-top: 30px;">
+        <button onclick="restartService()" class="btn btn-secondary" 
+                style="background-color: #4CAF50; color: white;">
+            <i class="fas fa-sync-alt"></i> Refresh Service
+        </button>
+        <p style="color: #777; margin-top: 10px; font-size: 0.9em;">
+            Click to restart the detection service if experiencing issues
+        </p>
+    </div>
+</body>
+</html>

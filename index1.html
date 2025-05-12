@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CrimeWatch Portal</title>
+    <style>
+        :root {
+            --primary: #1e90ff;
+            --secondary: #0d47a1;
+            --dark: #121212;
+            --light: #f8f9fa;
+            --danger: #dc3545;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--dark);
+            color: var(--light);
+        }
+        
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background-color: #000;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        
+        .header h1 {
+            margin: 0;
+            color: var(--primary);
+        }
+        
+        .header p {
+            margin: 0.5rem 0 0;
+            color: #aaa;
+        }
+        
+        .video-section {
+            flex: 1;
+            padding: 2rem;
+            background-color: #1a1a1a;
+        }
+        
+        .info-section {
+            width: 400px;
+            padding: 2rem;
+            background-color: #222;
+            border-left: 1px solid #333;
+            overflow-y: auto;
+        }
+        
+        .video-container {
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        
+        #liveView, #uploadedVideo {
+            width: 100%;
+            background-color: #000;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        
+        button:hover {
+            background-color: var(--secondary);
+        }
+        
+        button.danger {
+            background-color: var(--danger);
+        }
+        
+        #results {
+            margin-top: 2rem;
+        }
+        
+        .criminal-card {
+            background-color: #333;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .criminal-card h3 {
+            color: var(--primary);
+            margin-top: 0;
+        }
+        
+        .criminal-card img {
+            width: 100%;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        
+        .status-wanted {
+            color: #ff5252;
+            font-weight: bold;
+        }
+        
+        .status-fugitive {
+            color: #ffab40;
+            font-weight: bold;
+        }
+        
+        .about-section {
+            margin-bottom: 2rem;
+            padding: 1rem;
+            background-color: #333;
+            border-radius: 8px;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>CrimeWatch Portal</h1>
+        <p>Real-time criminal detection system for law enforcement</p>
+    </div>
+    
+    <div class="container">
+        <div class="video-section">
+            <div class="controls">
+                <button id="liveBtn">Live Camera</button>
+                <button id="uploadBtn">Upload Evidence</button>
+            </div>
+            
+            <div id="liveView" class="video-container">
+                <img src="{{ url_for('video_feed') }}">
+            </div>
+            
+            <div id="uploadSection" class="hidden">
+                <input type="file" id="videoInput" accept="video/*">
+                <button onclick="processVideo()">Analyze Evidence</button>
+                <div class="video-container">
+                    <video id="uploadedVideo" controls></video>
+                </div>
+            </div>
+            
+            <div id="detectionStatus"></div>
+        </div>
+        
+        <div class="info-section">
+            <div class="about-section">
+                <h2>About CrimeWatch</h2>
+                <p>This system helps law enforcement identify wanted criminals in real-time using advanced facial recognition technology.</p>
+                <p><strong>Services:</strong></p>
+                <ul>
+                    <li>Live criminal monitoring</li>
+                    <li>Evidence analysis</li>
+                    <li>Wanted persons database</li>
+                </ul>
+            </div>
+            
+            <h2>Criminal Information</h2>
+            <div id="criminalInfo">
+                <p>No criminal detected. Surveillance is active.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle between live and upload views
+        document.getElementById('liveBtn').addEventListener('click', function() {
+            document.getElementById('liveView').classList.remove('hidden');
+            document.getElementById('uploadSection').classList.add('hidden');
+            document.getElementById('detectionStatus').innerHTML = '';
+        });
+        
+        document.getElementById('uploadBtn').addEventListener('click', function() {
+            document.getElementById('liveView').classList.add('hidden');
+            document.getElementById('uploadSection').classList.remove('hidden');
+            document.getElementById('detectionStatus').innerHTML = '';
+        });
+        
+        // Process uploaded video
+        function processVideo() {
+            const fileInput = document.getElementById('videoInput');
+            const statusDiv = document.getElementById('detectionStatus');
+            const videoPlayer = document.getElementById('uploadedVideo');
+            
+            if (!fileInput.files.length) {
+                statusDiv.innerHTML = '<p>Please select a video file first</p>';
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            const videoURL = URL.createObjectURL(file);
+            videoPlayer.src = videoURL;
+            
+            statusDiv.innerHTML = '<p>Analyzing evidence video for criminal activity...</p>';
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    statusDiv.innerHTML = <p>Error: ${data.error}</p>;
+                } else if (data.criminals && data.criminals.length > 0) {
+                    statusDiv.innerHTML = `
+                        <p>Analysis complete. Detected ${data.criminals.length} criminal(s) in video.</p>
+                        <p>Evidence file: ${data.filename}</p>
+                    `;
+                    displayCriminalInfo(data.criminals[0]); // Show first criminal found
+                } else {
+                    statusDiv.innerHTML = '<p>No known criminals detected in this evidence.</p>';
+                    document.getElementById('criminalInfo').innerHTML = 
+                        '<p>No criminal detected in the analyzed evidence.</p>';
+                }
+            })
+            .catch(error => {
+                statusDiv.innerHTML = <p>Error processing video: ${error.message}</p>;
+            });
+        }
+        
+        // Display criminal information
+        function displayCriminalInfo(criminal) {
+            const criminalInfo = document.getElementById('criminalInfo');
+            
+            let statusClass = '';
+            if (criminal.status === 'Wanted') {
+                statusClass = 'status-wanted';
+            } else if (criminal.status === 'Fugitive') {
+                statusClass = 'status-fugitive';
+            }
+            
+            criminalInfo.innerHTML = `
+                <div class="criminal-card">
+                    <img src="${criminal.image}" alt="${criminal.name}">
+                    <h3>${criminal.name}</h3>
+                    <p><strong>Status:</strong> <span class="${statusClass}">${criminal.status}</span></p>
+                    <p><strong>Crime:</strong> ${criminal.crime}</p>
+                    <p><strong>Reward:</strong> ${criminal.reward}</p>
+                    <p><strong>Details:</strong> ${criminal.details}</p>
+                    <p><strong>Last Seen:</strong> ${criminal.last_seen}</p>
+                </div>
+            `;
+        }
+        
+        // Simulate live detection (in a real app, you'd use WebSockets)
+        setInterval(() => {
+            // This would be replaced with actual detection from your live feed
+            if (Math.random() > 0.10) {
+                // Simulate detecting criminal with ID 0
+                fetch('/criminal/0')  
+                    .then(response => response.json())
+                    .then(criminal => {
+                        if (criminal.name) {
+                            displayCriminalInfo(criminal);
+                            document.getElementById('detectionStatus').innerHTML = `
+                                <p class="status-wanted">WARNING: Criminal detected in live feed!</p>
+                            `;
+                        }
+                    });
+            }
+        }, 3000);
+    </script>
+</body>
+</html>
